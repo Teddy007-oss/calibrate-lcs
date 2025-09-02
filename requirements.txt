@@ -1,0 +1,18 @@
+# Core
+pandas
+numpy
+scipy
+
+# Machine Learning
+scikit-learn
+xgboost
+
+# Stats / Evaluation
+statsmodels
+
+# Visualization (optional in Python if you want)
+matplotlib
+seaborn
+
+# File I/O
+joblib

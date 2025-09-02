@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# VS Code
+.vscode/
+
+# Ignore ALL data files
+data/
+*.csv
+*.xlsx
+*.xls
+*.rds
+*.sav
+*.json
+*.parquet
+
+# all data  files in the repo
+*.csv
+*.xlsx
+*.xls
+
+# R session and user files
+.Rhistory
+.RData
+.Ruserdata
+.Rprofile
+
+# RStudio project files
+.Rproj.user/
+*.Rproj
+
+# renv package manager (lock files, cache)
+renv/
+renv.lock
