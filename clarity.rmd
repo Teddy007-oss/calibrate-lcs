@@ -1,0 +1,206 @@
+---
+title: "Clarity Calibration"
+author: "Super"
+date: "2025-08-05"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(caret)
+library(tidyverse)
+library(readxl)
+
+```
+
+
+```{r}
+clarity <- read_excel("C:/Users/USER/Downloads/clarity.xlsx")
+head(clarity)
+```
+
+
+```{r}
+summary(clarity)
+```
+
+
+```{r}
+#selecting the components for the regression 
+data <- clarity %>%
+  select(date,FEM,Clarity,Clarity_T,Clarity_RH)
+
+colnames(data) <- c("date","PM2.5(ref)", "pm2.5(lcs)", "T", "Rh")
+head(data)
+
+```
+
+```{r}
+#the validation set approach
+#Splitting the data into training and testing
+set.seed(1234)
+training.samples <- data$`PM2.5(ref)` %>%
+  createDataPartition(p = 0.8, list = FALSE)
+
+trainData <- data[training.samples,]
+testData <- data[-training.samples,]
+```
+
+
+```{r}
+#building the model
+model <- lm(`PM2.5(ref)`~`pm2.5(lcs)` + T + Rh, data = trainData)
+
+summary(model)$coef
+
+```
+```{r}
+predictions <- model %>% predict(testData)
+
+data.frame(R2 = R2(predictions, testData$`PM2.5(ref)`),
+           RMSE = RMSE(predictions, testData$`PM2.5(ref)`))
+
+```
+
+```{r}
+#LOOCV approach
+
+#defining training control
+train.control <- trainControl(method = "LOOCV")
+
+model_1 <- train(`PM2.5(ref)`~`pm2.5(lcs)` + T + Rh, data = data, method ="lm",
+                 trControl = train.control)
+
+print(model_1)
+
+```
+
+```{r}
+summary(model_1)$coef
+```
+```{r}
+predictions_1 <- model_1 %>% predict(data)
+
+data.frame(R2 = R2(predictions_1, data$`PM2.5(ref)`),
+           RMSE = RMSE(predictions_1, data$`PM2.5(ref)`))
+```
+
+
+```{r}
+#Using a 10-fold cross-validation method
+
+train.control_1 <- trainControl(method = "cv", number = 10)
+
+model_2 <- train(`PM2.5(ref)`~`pm2.5(lcs)` + T + Rh, data = data, method ="lm",
+                 trControl = train.control_1)
+
+print(model_2)
+```
+```{r}
+summary(model_2)$coef
+```
+```{r}
+predictions_2 <- model_2 %>% predict(data)
+
+data.frame(R2 = R2(predictions_2, data$`PM2.5(ref)`),
+           RMSE = RMSE(predictions_2, data$`PM2.5(ref)`))
+```
+
+
+```{r}
+#using a repeated cross-validation method
+
+train.control_2 <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+
+model_3 <- train(`PM2.5(ref)`~`pm2.5(lcs)` + T + Rh, data = data, method ="lm",
+                 trControl = train.control_2)
+
+print(model_3)
+```
+
+```{r}
+summary(model_3)$coef
+```
+```{r}
+predictions_3 <- model_3 %>% predict(data)
+
+data.frame(R2 = R2(predictions_3, data$`PM2.5(ref)`),
+           RMSE = RMSE(predictions_3, data$`PM2.5(ref)`))
+```
+```{r}
+newData <- testData
+newData$`pm2.5(cal)` <- predictions
+```
+
+
+```{r}
+timePlot(newData, pollutant = c("PM2.5(ref)", "pm2.5(lcs)", "pm2.5(cal)"), group = TRUE,
+         ylab="PM2.5 (ug/m3)",ylim=c(0,300), cols = c("red","black","#00BFFF"), lwd=3, avg.time = "day", lty = 1)
+```
+
+```{r}
+newData2 <- data
+newData2$`pm2.5(cal)` <- predictions_1
+
+```
+
+
+```{r}
+timePlot(newData2, pollutant = c("PM2.5(ref)", "pm2.5(lcs)", "pm2.5(cal)"), group = TRUE,
+         ylab="PM2.5 (ug/m3)",ylim=c(0,300), cols = c("red","black","#00BFFF"), lwd=3, avg.time = "day", lty = 1)
+```
+
+```{r}
+library(readxl)
+clarity <- read_excel("C:/Users/USER/Downloads/clarity.xlsx")
+
+start_date_dry <- as.POSIXct("2024-01-01 00:00:00", tz = "UTC")
+end_date_dry <- as.POSIXct("2024-03-31 00:00:00", tz = "UTC")
+
+start_date_wet <- as.POSIXct("2024-04-01 00:00:00", tz = "UTC")
+end_date_wet <- as.POSIXct("2024-06-30 00:00:00", tz = "UTC")
+
+clarity_dry <- clarity %>%
+  filter(date >= start_date_dry & date <= end_date_dry)
+
+colnames(clarity_dry) <- c("date", "PM2.5", "pm25", "temp", "rh", "RH", "Temp")
+
+write.csv(clarity_dry, "C:/Users/USER/Documents/Afri-SET/Calibrations/clarity_dry.csv", row.names = FALSE)
+
+clarity_wet <- clarity %>%
+  filter(date >= start_date_wet & date <= end_date_wet)
+colnames(clarity_wet) <- c("date", "PM2.5", "pm25", "temp", "rh", "RH", "Temp")
+
+write.csv(clarity_wet, "C:/Users/USER/Documents/Afri-SET/Calibrations/clarity_wet.csv", row.names = FALSE)
+summary(clarity_wet)
+```
+
+```{r}
+df <- read.csv("C:/Users/USER/Documents/Afri-SET/Calibrations/TBC.csv")
+
+df$date <- lubridate::ymd_hms(df$date)
+
+summary(df)
+
+start_date_dry <- as.POSIXct("2022-01-01 00:00:00", tz = "UTC")
+end_date_dry <- as.POSIXct("2022-03-31 00:00:00", tz = "UTC")
+
+start_date_wet <- as.POSIXct("2022-04-01 00:00:00", tz = "UTC")
+end_date_wet <- as.POSIXct("2022-06-30 00:00:00", tz = "UTC")
+
+TBC_dry <- df %>%
+  filter(date >= start_date_dry & date <= end_date_dry)
+
+write.csv(TBC_dry, "C:/Users/USER/Documents/Afri-SET/Calibrations/TBC_dry.csv", row.names = FALSE)
+
+
+TBC_wet <- df %>%
+  filter(date >= start_date_wet & date <= end_date_wet)
+
+write.csv(TBC_wet, "C:/Users/USER/Documents/Afri-SET/Calibrations/TBC_wet.csv", row.names = FALSE)
+
+```
+
