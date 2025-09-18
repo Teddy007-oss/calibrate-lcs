@@ -15,7 +15,7 @@ df_wet = pd.read_csv(r"C:\Users\USER\Documents\Afri-SET\Calibrations\TBC_wet.csv
 
 sites = ["CPC", "St", "Bet", "Com", "TMA", "Fre", "Val",
          "LEK", "Chal", "Ade", "San", "Adu", "Sua", "Sep",
-         "Aso", "Gui"]
+         "Aso"]
 
 for site in sites:
     pm25 = f"{site}_pm25"
@@ -38,8 +38,16 @@ for site in sites:
 
     else:
         print(f"Missing columns for site {site}. Skipping...")
+
+# Convert index to datetime safely
+df_dry.index = pd.to_datetime(df_dry.index, errors="coerce", format="mixed")
+df_wet.index = pd.to_datetime(df_wet.index, errors="coerce", format="mixed")
+
+# Then force a consistent string format
+df_dry.index = df_dry.index.strftime("%Y-%m-%d %H:%M:%S")
+df_wet.index = df_wet.index.strftime("%Y-%m-%d %H:%M:%S")
         
-df_dry.to_csv(r"C:\Users\USER\Documents\Afri-SET\Calibrations\clarity_dry_corrected.csv", index = False)
-df_wet.to_csv(r"C:\Users\USER\Documents\Afri-SET\Calibrations\clarity_wet_corrected.csv", index = False)
+df_dry.to_csv(r"C:\Users\USER\Documents\Afri-SET\Calibrations\clarity_dry_corrected.csv", index = True)
+df_wet.to_csv(r"C:\Users\USER\Documents\Afri-SET\Calibrations\clarity_wet_corrected.csv", index = True)
 
 print("Inference completed and results saved.")

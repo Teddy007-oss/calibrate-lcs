@@ -158,10 +158,10 @@ library(readxl)
 clarity <- read_excel("C:/Users/USER/Downloads/clarity.xlsx")
 
 start_date_dry <- as.POSIXct("2024-01-01 00:00:00", tz = "UTC")
-end_date_dry <- as.POSIXct("2024-03-31 00:00:00", tz = "UTC")
+end_date_dry <- as.POSIXct("2024-03-31 23:59:00", tz = "UTC")
 
 start_date_wet <- as.POSIXct("2024-04-01 00:00:00", tz = "UTC")
-end_date_wet <- as.POSIXct("2024-06-30 00:00:00", tz = "UTC")
+end_date_wet <- as.POSIXct("2024-06-30 23:59:00", tz = "UTC")
 
 clarity_dry <- clarity %>%
   filter(date >= start_date_dry & date <= end_date_dry)
@@ -186,10 +186,10 @@ df$date <- lubridate::ymd_hms(df$date)
 summary(df)
 
 start_date_dry <- as.POSIXct("2022-01-01 00:00:00", tz = "UTC")
-end_date_dry <- as.POSIXct("2022-03-31 00:00:00", tz = "UTC")
+end_date_dry <- as.POSIXct("2022-03-31 23:59:00", tz = "UTC")
 
 start_date_wet <- as.POSIXct("2022-04-01 00:00:00", tz = "UTC")
-end_date_wet <- as.POSIXct("2022-06-30 00:00:00", tz = "UTC")
+end_date_wet <- as.POSIXct("2022-06-30 23:59:00", tz = "UTC")
 
 TBC_dry <- df %>%
   filter(date >= start_date_dry & date <= end_date_dry)
@@ -204,3 +204,53 @@ write.csv(TBC_wet, "C:/Users/USER/Documents/Afri-SET/Calibrations/TBC_wet.csv", 
 
 ```
 
+```{r}
+#Lets do the dry analysis
+library(readr)
+library(tidyverse)
+
+df <- read.csv("C:\\Users\\USER\\Documents\\Afri-SET\\Calibrations\\clarity_dry_corrected.csv")
+
+df$date <- ifelse(nchar(df$date) == 10, paste0(df$date, " 00:00:00"), df$date)
+
+df$date <- lubridate::ymd_hms(df$date)
+
+summary(df)
+
+df_cpc <- df %>%
+  select(date, CPC_pm25, CPC_corrected)
+summary(df_cpc)
+```
+
+```{r}
+data <- df %>%
+    select(date, CPC_corrected, St_corrected, Bet_corrected, Com_corrected, TMA_corrected,
+    Fre_corrected, Val_corrected, LEK_corrected, Chal_corrected, Ade_corrected, San_corrected,
+    Adu_corrected, Sua_corrected, Sep_corrected, Aso_corrected, Gui_corrected)
+
+data <- df %>%
+    select(date, CPC_pm25, St_pm25, Bet_pm25, Com_pm25, TMA_pm25,
+    Fre_pm25, Val_pm25, LEK_pm25, Chal_pm25, Ade_pm25, San_pm25,
+    Adu_pm25, Sua_pm25, Sep_pm25, Aso_pm25, Gui_pm25)
+  
+  summary(data)
+
+library(reshape2)
+library(dplyr)
+
+
+df_long <- data %>%
+  select(-date) %>%
+  pivot_longer(cols = everything(),
+               names_to = "variable",
+               values_to = "value")
+
+library(ggplot2)
+
+ggplot(df_long, aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(title = "Boxplot", 
+       x = "Variable", y = "Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
