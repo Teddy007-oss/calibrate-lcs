@@ -157,8 +157,23 @@ timePlot(newData2, pollutant = c("PM2.5(ref)", "pm2.5(lcs)", "pm2.5(cal)"), grou
 library(readxl)
 clarity <- read_excel("C:/Users/USER/Downloads/clarity.xlsx")
 
+library(xts)
+clarity <- data.frame(period.apply(clarity, endpoints(clarity, "hour"), colMeans, na.rm = TRUE))
+
+library(data.table)
+library(tidyverse)
+
+setDT(clarity, keep.rownames = "date")
+clarity <- clarity %>%
+  mutate(date1 = lubridate::ymd_hms(date))
+
+#move column 'column' to first position
+clarity <- clarity %>% select(date1, everything())
+clarity = clarity[,-2]
+colnames(clarity)[1] <- "date"
+
 start_date_dry <- as.POSIXct("2024-01-01 00:00:00", tz = "UTC")
-end_date_dry <- as.POSIXct("2024-03-31 23:59:00", tz = "UTC")
+end_date_dry <- as.POSIXct("2024-02-29 23:59:00", tz = "UTC")
 
 start_date_wet <- as.POSIXct("2024-04-01 00:00:00", tz = "UTC")
 end_date_wet <- as.POSIXct("2024-06-30 23:59:00", tz = "UTC")
@@ -195,7 +210,7 @@ TBC_dry <- df %>%
   filter(date >= start_date_dry & date <= end_date_dry)
 
 write.csv(TBC_dry, "C:/Users/USER/Documents/Afri-SET/Calibrations/TBC_dry.csv", row.names = FALSE)
-
+summary(TBC_dry)
 
 TBC_wet <- df %>%
   filter(date >= start_date_wet & date <= end_date_wet)
