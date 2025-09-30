@@ -45,7 +45,7 @@ if __name__ == "__main__":
     
     # file path must be changed to the location of the data
     df = pd.read_csv(
-        r"C:\Users\USER\Documents\Afri-SET\Calibrations\clarity_wet.csv",
+        r"C:\Users\USER\Documents\Afri-SET\Calibrations\clarity_dry.csv",
         parse_dates=["date"],
         index_col="date"
     )
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     features = df[["pm25","temp", "rh"]]
     
     #the period for the calibration must be added to the sensor name, say sensit_ramp_wet
-    mlr_calibration(df, features, target, sensor_name="Clarity_Wet")
+    mlr_calibration(df, features, target, sensor_name="Clarity_Dry")
     
     #Be sure the state the sensor name
     sensor_name = "Clarity_Wet" 
